@@ -1,0 +1,154 @@
++var WAIT: int
++var FB: int
++var FW: int
++class Control()
+	;_Bを基本的に使い、_Wは同じAI同士の時に用いる
+	var manual: \manual@Manual
+	var AI1_B: \ai1@AI
+	var AI1_W: \ai1@AI
+	var AI2_B: \ai2@AI
+	var AI2_W: \ai2@AI
+	var AI3_B: \ai3@AI
+	var AI3_W: \ai3@AI
+	var AI4_B: \ai4@AI
+	var AI4_W: \ai4@AI
+	var AI5_B: \ai5@AI
+	var AI5_W: \ai5@AI
+	var AI6_B: \ai6@AI
+	var AI6_W: \ai6@AI
+	*func ctor()
+		do me.manual :: #\manual@Manual
+		do me.AI1_B :: #\ai1@AI
+		do me.AI1_W :: #\ai1@AI
+		do me.AI2_B :: #\ai2@AI
+		do me.AI2_W :: #\ai2@AI
+		do me.AI3_B :: #\ai3@AI
+		do me.AI3_W :: #\ai3@AI
+		do me.AI4_B :: #\ai4@AI
+		do me.AI4_W :: #\ai4@AI
+		do me.AI5_B :: #\ai5@AI
+		do me.AI5_W :: #\ai5@AI
+		do me.AI6_B :: #\ai6@AI
+		do me.AI6_W :: #\ai6@AI
+	end func
+	
+	+func main(turn: int): []int
+		var move: []int :: [-1, -1]
+		
+		switch(turn)
+		case 1
+			switch(@FB)
+			case 0
+				do move :: me.manual.main()
+			case 1
+				if(@WAIT = 1)
+					do lib@sleep(1000)
+				end if
+				do move :: me.AI1_B.main(turn)
+			case 2
+				if(@WAIT = 1)
+					do lib@sleep(1000)
+				end if
+				do move :: me.AI2_B.main(turn)
+			case 3
+				if(@WAIT = 1)
+					do lib@sleep(1000)
+				end if
+				do move :: me.AI3_B.main(turn)
+			case 4
+				if(@WAIT = 1)
+					do lib@sleep(1000)
+				end if
+				do move :: me.AI4_B.main(turn)
+			case 5
+				if(@WAIT = 1)
+					do lib@sleep(1000)
+				end if
+				do move :: me.AI5_B.main(turn)
+			case 6
+				if(@WAIT = 1)
+					do lib@sleep(1000)
+				end if
+				do move :: me.AI6_B.main(turn)
+			end switch
+		case -1
+			switch(@FW)
+			case 0
+				do move :: me.manual.main()
+			case 1
+				if(@WAIT = 1)
+					do lib@sleep(1000)
+				end if
+				do move :: me.AI1_W.main(turn)
+			case 2
+				if(@WAIT = 1)
+					do lib@sleep(1000)
+				end if
+				do move :: me.AI2_W.main(turn)
+			case 3
+				if(@WAIT = 1)
+					do lib@sleep(1000)
+				end if
+				do move :: me.AI3_B.main(turn)
+				;do move :: me.AI3_W.main(turn)
+			case 4
+				if(@WAIT = 1)
+					do lib@sleep(1000)
+				end if
+				do move :: me.AI4_B.main(turn)
+				;do move :: me.AI4_W.main(turn)
+			case 5
+				if(@WAIT = 1)
+					do lib@sleep(1000)
+				end if
+				do move :: me.AI5_W.main(turn)
+			case 6
+				if(@WAIT = 1)
+					do lib@sleep(1000)
+				end if
+				do move :: me.AI6_W.main(turn)
+			end switch
+		end switch
+		
+		ret move
+	end func
+	
+	+func start()
+		switch(@FB)
+		case 3
+			do me.AI3_B.start("NN_MonteCarlo_Sigmoid_\{\game@SIZE}x\{\game@SIZE}")
+		case 4
+			do me.AI4_B.start("NN_MonteCarlo_ReLU_\{\game@SIZE}x\{\game@SIZE}")
+		end switch
+		switch(@FW)
+		case 3
+			do me.AI3_B.start("NN_MonteCarlo_Sigmoid_\{\game@SIZE}x\{\game@SIZE}")
+			;do me.AI3_W.start("NN_MonteCarlo_Sigmoid_\{\game@SIZE}x\{\game@SIZE}")
+		case 4
+			do me.AI4_B.start("NN_MonteCarlo_ReLU_\{\game@SIZE}x\{\game@SIZE}")
+			;do me.AI4_W.start("NN_MonteCarlo_ReLU_\{\game@SIZE}x\{\game@SIZE}")
+		end switch
+	end func
+	
+	+func init(turn: int, endF: int)
+		
+		;終了時に何か更新する
+		if(endF <> 0)
+			switch(@FB)
+			case 3
+				do me.AI3_B.init(1, endF)
+			case 4
+				do me.AI4_B.init(1, endF)
+			end switch
+			switch(@FW)
+			case 3
+				do me.AI3_B.init(-1, endF)
+				;do me.AI3_W.init(-1, endF)
+			case 4
+				do me.AI4_B.init(-1, endF)
+				;do me.AI4_W.init(-1, endF)
+			end switch
+		end if
+		
+	end func
+end class

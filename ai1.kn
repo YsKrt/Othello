@@ -1,0 +1,108 @@
+;最小の石を取り、角の周りに置かず角を取る
++class AI()
+	
+	+func main(turn: int): []int
+		var move: []int :: [-1, -1]
+		var maxlist: [][]int :: #[\game@SIZE, \game@SIZE]int
+		var notedgecount: int
+		;置ける場所でとれる石の数を求める
+		for x(0, \game@SIZE - 1)
+			for y(0, \game@SIZE - 1)
+				if(\game@rule(x, y, turn))
+					;角付近や端以外における位置の数
+					if(!((x < 2 & (y < 2 | y > \game@SIZE - 1 - 2)) | (x > \game@SIZE - 1 - 2 & (y < 2 | y > \game@SIZE - 1 - 2))))
+						if(!(x = 0 | y = 0 | x = \game@SIZE - 1 | y = \game@SIZE - 1))
+							do notedgecount :+ 1
+						end if
+					end if
+					var num: int :: 0
+					for i(0, 7)
+						do num :+ \game@get(x, y, turn, i)
+					end for
+					do maxlist[x][y] :: num
+				end if
+			end for
+		end for
+		
+		
+		var min: int :: \game@SIZE ^ 2
+		for x(0, \game@SIZE - 1)
+			for y(0, \game@SIZE - 1)
+				if(\game@rule(x, y, turn))
+					;取れる石が最小
+					if(min > maxlist[x][y] & maxlist[x][y] > 0)
+						;角付近でも端でもないときまたはそれ以外に置くところがないとき置く
+						if(!((x < 2 | x > \game@SIZE - 1 - 2) & (y < 2 | y > \game@SIZE - 1 - 2))
+							|&!(x = 0 | y = 0 | x = \game@SIZE - 1 | y = \game@SIZE - 1)
+							||notedgecount = 0)
+							do min :: maxlist[x][y]
+							do move :: [x, y]
+						end if
+					end if
+					;端
+					if(x = 0 | y = 0 | x = \game@SIZE - 1 | y = \game@SIZE - 1)
+						;端に沿った隣に相手の石がなければ端に置く
+						;左右の端
+						if((x = 0 | x = \game@SIZE - 1) & \game@get2(x, y, turn * -1, 0) = 0 & \game@get2(x, y, turn * -1, 4) = 0)
+							do move :: [x, y]
+						end if
+						;上下の端
+						if((y = 0 | y = \game@SIZE - 1) & \game@get2(x, y, turn * -1, 2) = 0 & \game@get2(x, y, turn * -1, 6) = 0)
+							do move :: [x, y]
+						end if
+						;端に沿った隣に相手の石がある場合、その石を取れてその端に相手の石がなくなる場合は置く
+						;左右の端
+						if((x = 0 | x = \game@SIZE - 1) & (\game@get2(x, y, turn * -1, 0) = 1 | \game@get2(x, y, turn * -1, 4) = 1))
+							;端にあって取れる相手の石の数
+							var count1: int :: 0
+							do count1 :: \game@get(x, y, turn, 0) + \game@get(x, y, turn, 4)
+							;端にある相手の石の数
+							var count2: int
+							for Y(0, \game@SIZE - 1)
+								if(\game@map[x][Y] = turn * -1)
+									do count2 :+ 1
+								end if
+							end for
+							if(count2 - count1 = 0)
+								do move :: [x, y]
+							end if
+							;端に置くとき、相手の石の間に置いても相手の端の石を取らない場合は置く
+							if((\game@get2(x, y, turn * -1, 0) = 1 & \game@get2(x, y, turn * -1, 4) = 1) & count1 = 0)
+								do move :: [x, y]
+							end if
+						end if
+						;上下の端
+						if((y = 0 | y = \game@SIZE - 1) & (\game@get2(x, y, turn * -1, 2) = 1 | \game@get2(x, y, turn * -1, 6) = 1))
+							;端にあって取れる相手の石の数
+							var count1: int :: 0
+							do count1 :: \game@get(x, y, turn, 2) + \game@get(x, y, turn, 6)
+							;端にある相手の石の数
+							var count2: int
+							for X(0, \game@SIZE - 1)
+								if(\game@map[X][y] = turn * -1)
+									do count2 :+ 1
+								end if
+							end for
+							if(count2 - count1 = 0)
+								do move :: [x, y]
+							end if
+							;端に置くとき、相手の石の間に置いても相手の端の石を取らない場合は置く
+							if((\game@get2(x, y, turn * -1, 2) = 1 & \game@get2(x, y, turn * -1, 6) = 1) & count1 = 0)
+								do move :: [x, y]
+							end if
+						end if
+					end if
+					;角におけるなら置く
+					if((x = 0 | x = \game@SIZE - 1) & (y = 0 | y = \game@SIZE - 1))
+						do move :: [x, y]
+						break x
+					end if
+				end if
+			end for
+		end for
+		ret move
+	end func
+	
+	
+	
+end class

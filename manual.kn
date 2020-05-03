@@ -1,0 +1,44 @@
+var move: []int
++class Manual()
+	
+	var count: int
+	*func ctor()
+		do @move :: [-1, -1]
+		func click(wnd: wnd@Draw, x: int, y: int)
+			var ww: int
+			var wh: int
+			var wx: int
+			var wy: int
+			do \main@drawMain.getPos(&wx, &wy, &ww, &wh)
+			var width: float :: (ww $ float * 3.0 / 4.0) / \game@SIZE $ float
+			var height: float :: wh $ float / \game@SIZE $ float
+			for X(0, \game@SIZE - 1)
+				for Y(0, \game@SIZE - 1)
+					if(X $ float * width <= x $ float & x $ float <= (X $ float + 1.0) * width & Y $ float * height <= y $ float & y $ float <= (Y $ float + 1.0) * height)
+						do @move :: [X, Y]
+						;do dbg@print("\{X},\{Y}\n")
+					end if
+				end for
+			end for
+			
+		end func
+		
+		do \main@drawMain.onMouseDownL :: click
+	end func
+	
+	+func main(): []int
+		if(@move[0] <> -1)
+			do me.count :+ 1
+		end if
+		if(me.count = 1)
+			do me.count :: 0
+			var move: []int :: @move
+			do @move :: [-1, -1]
+			ret move
+		end if
+		ret[-1, -1]
+	end func
+	
+	
+	
+end class

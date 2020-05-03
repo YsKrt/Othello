@@ -1,0 +1,266 @@
+
+
++class AI()
+	
+	+func main(turn: int): []int
+		var move: []int :: [-1, -1]
+		var vMap: [][]int
+		var vMap2: [][]int
+		var vMap3: [][]int
+		var point: [][]int :: #[\game@SIZE, \game@SIZE]int
+		
+		;自分
+		for X(0, \game@SIZE - 1)
+			for Y(0, \game@SIZE - 1)
+				if(@rule(X, Y, turn, \game@map))
+					do vMap :: ##\game@map
+					do \game@reverse(X, Y, turn, vMap)
+					;相手
+					for x(0, \game@SIZE - 1)
+						for y(0, \game@SIZE - 1)
+							if(@rule(x, y, turn * -1, vMap))
+								do vMap2 :: ##vMap
+								do \game@reverse(x, y, turn * -1, vMap2)
+								do point[X][Y] :- 1
+								;自分
+								for X2(0, \game@SIZE - 1)
+									for Y2(0, \game@SIZE - 1)
+										if(@rule(X2, Y2, turn, vMap2))
+											do vMap3 :: ##vMap2
+											do \game@reverse(X2, Y2, turn, vMap3)
+											do point[X][Y] :+ 1
+											;相手
+											for x2(0, \game@SIZE - 1)
+												for y2(0, \game@SIZE - 1)
+													if(@rule(x2, y2, turn * -1, vMap3))
+														do point[X][Y] :- 1
+													end if
+												end for
+											end for
+											;		
+										end if
+									end for
+								end for
+								;
+							end if
+						end for
+					end for
+					;
+				end if
+			end for
+		end for
+		;
+		var max: int :: -9999999999
+		for x(0, \game@SIZE - 1)
+			for y(0, \game@SIZE - 1)
+				if(@rule(x, y, turn, \game@map))
+					if(max < point[x][y])
+						do max :: point[x][y]
+						do move :: [x, y]
+					end if
+				end if
+			end for
+		end for
+		;
+		ret move
+	end func
+end class
+
+
+func MM(meTurn: int, turn: int, map: [][]int, depth: int, point: &int): int
+	
+	if(depth = 0)
+		ret point
+	end if
+	
+	for X(0, \game@SIZE - 1)
+		for Y(0, \game@SIZE - 1)
+			if(@rule(X, Y, turn, map))
+				var _map: [][]int :: ##map
+				do \game@reverse(X, Y, turn, _map)
+				if(meTurn = turn)
+					do point :+ 1
+				else
+					do point :- 1
+				end if
+				do @MM(meTurn, turn * -1, _map, depth - 1, &point)
+			end if
+		end for
+	end for
+end func
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
++func rule(x: int, y: int, color: int, map: [][]int): bool
+	;範囲内かどうか
+	if(!(x >= 0 & y >= 0 & x < \game@SIZE & y < \game@SIZE))
+		ret false
+	end if
+	;何もないか確認
+	if(map[x][y] <> 0)
+		ret false
+	end if
+	;各方向のとれる石の数
+	var u: int :: @get(x, y, color, 0, map)
+	var ru: int :: @get(x, y, color, 1, map)
+	var r: int :: @get(x, y, color, 2, map)
+	var rd: int :: @get(x, y, color, 3, map)
+	var d: int :: @get(x, y, color, 4, map)
+	var ld: int :: @get(x, y, color, 5, map)
+	var l: int :: @get(x, y, color, 6, map)
+	var lu: int :: @get(x, y, color, 7, map)
+	;do dbg@print("r:\{r},l:\{l},u:\{u},d:\{d},ru:\{ru},lu\{lu},rd:\{rd},ld:\{ld},\n")
+	;判定
+	if((r > 0 | l > 0 | u > 0 | d > 0 | ru > 0 | lu > 0 | rd > 0 | ld > 0))
+		ret true
+	end if
+	
+	ret false
+end func
+
+;各方向でとれる相手の石の数を返す
++func get(x: int, y: int, color: int, way: int, map: [][]int): int
+	;時計回り。上から
+	switch(way)
+	case 0
+		;上を探索
+		if(y = 0)
+			;上にマスがない場合
+			ret 0
+		end if
+		var count_u: int
+		for i(y - 1, 0, -1)
+			if(map[x][i] = color * -1)
+				;相手の石があったとき
+				do count_u :+ 1
+				;相手の石がない場合
+			else
+				;間に相手の石がある
+				if(count_u > 0 & map[x][i] = color)
+					;自分の石があった場合
+					ret count_u
+				end if
+				ret 0
+			end if
+		end for
+	case 1
+		;右上を探索
+		var max_ru: int :: \game@SIZE - 1 - x < y ?(\game@SIZE - 1 - x, y)
+		var count_ru: int
+		for i(1, max_ru)
+			if(map[x + i][y - i] = color * -1)
+				do count_ru :+ 1
+			else
+				if(count_ru > 0 & map[x + i][y - i] = color)
+					ret count_ru
+				end if
+				ret 0
+			end if
+		end for
+	case 2
+		;右を探索
+		if(x = \game@SIZE - 1)
+			ret 0
+		end if
+		var count_r: int
+		for i(x + 1, \game@SIZE - 1)
+			if(map[i][y] = color * -1)
+				do count_r :+ 1
+			else
+				if(count_r > 0 & map[i][y] = color)
+					ret count_r
+				end if
+				ret 0
+			end if
+		end for
+	case 3
+		;右下を探索
+		var max_rd: int :: \game@SIZE - 1 - x < \game@SIZE - 1 - y ?(\game@SIZE - 1 - x, \game@SIZE - 1 - y)
+		var count_rd: int
+		for i(1, max_rd)
+			if(map[x + i][y + i] = color * -1)
+				do count_rd :+ 1
+			else
+				if(count_rd > 0 & map[x + i][y + i] = color)
+					ret count_rd
+				end if
+				ret 0
+			end if
+		end for
+	case 4
+		;下を探索
+		if(y = \game@SIZE - 1)
+			ret 0
+		end if
+		var count_d: int
+		for i(y + 1, \game@SIZE - 1)
+			if(map[x][i] = color * -1)
+				do count_d :+ 1
+			else
+				if(count_d > 0 & map[x][i] = color)
+					ret count_d
+				end if
+				ret 0
+			end if
+		end for
+	case 5
+		;左下を探索
+		var max_ld: int :: x < \game@SIZE - 1 - y ?(x, \game@SIZE - 1 - y)
+		var count_ld: int
+		for i(1, max_ld)
+			if(map[x - i][y + i] = color * -1)
+				do count_ld :+ 1
+			else
+				if(count_ld > 0 & map[x - i][y + i] = color)
+					ret count_ld
+				end if
+				ret 0
+			end if
+		end for
+	case 6
+		;左を探索
+		if(x = 0)
+			ret 0
+		end if
+		var count_l: int
+		for i(x - 1, 0, -1)
+			if(map[i][y] = color * -1)
+				do count_l :+ 1
+			else
+				if(count_l > 0 & map[i][y] = color)
+					ret count_l
+				end if
+				ret 0
+			end if
+		end for
+	case 7
+		;左上を探索
+		var max_lu: int :: x < y ?(x, y)
+		var count_lu: int
+		for i(1, max_lu)
+			if(map[x - i][y - i] = color * -1)
+				do count_lu :+ 1
+			else
+				if(count_lu > 0 & map[x - i][y - i] = color)
+					ret count_lu
+				end if
+				ret 0
+			end if
+		end for
+	end switch
+end func

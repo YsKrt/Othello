@@ -1,0 +1,21 @@
+
+;ランダム
++class AI()
+	+func main(turn: int): []int
+		var move: []int :: [-1, -1]
+		var count: int
+		for x(0, \game@SIZE - 1)
+			for y(0, \game@SIZE - 1)
+				if(\game@rule(x, y, turn))
+					if(lib@rnd(0, count) = 0)
+						do move :: [x, y]
+					end if
+					do count :+ 1
+				end if
+			end for
+		end for
+		ret move
+	end func
+end class
+
+

@@ -1,0 +1,44 @@
++var wndMain: wnd@Wnd
++var drawMain: wnd@Draw
++var WIDTH: float
++var HEIGHT: float
++var font: draw@Font
++var logtxt: []char
++var start_time: int
+func main()
+	
+	var result: []char
+	do result :: wndex@inputBox(null, "学習回数, 読み込む回数,黒, 白,待つ", "Othello", "0,0,0,0,0", null)
+	if(result =& null)
+		ret
+	end if
+	var data: [][]char :: result.split(",")
+	var existed: bool
+	do @WIDTH :: 900.0
+	do @HEIGHT :: 900.0
+	do @wndMain :: wnd@makeWnd(null, %aspect, @WIDTH $ int + @WIDTH $ int / 3, @HEIGHT $ int, "Othello")
+	do @drawMain :: wnd@makeDraw(@wndMain, 0, 0, @WIDTH $ int + @WIDTH $ int / 3, @HEIGHT $ int, %scale, %scale, false)
+	do @font :: draw@makeFont("Meiryo UI", 15, false, false, true, 0.0)
+	do @start_time :: lib@sysTime()
+	do @logtxt :: ""
+	var game: \game@Game :: #\game@Game
+	
+	do dbg@print("入力値:\{data[0].toInt(&existed)},\{data[1].toInt(&existed)},\{data[2].toInt(&existed)},\{data[3].toInt(&existed)},\{data[4].toInt(&existed)}\n")
+	do @logtxt :~ "入力値:\{data[0].toInt(&existed)},\{data[1].toInt(&existed)},\{data[2].toInt(&existed)},\{data[3].toInt(&existed)},\{data[4].toInt(&existed)}\n"
+	var h: file@Writer :: file@makeWriter("now_data.txt", true)
+	do h.writeStr(@logtxt)
+	do h.fin()
+	
+	do \game@Traincount :: data[0].toInt(&existed)
+	do \game@Readcount :: data[1].toInt(&existed)
+	do \control@FB :: data[2].toInt(&existed)
+	do \game@P1 :: data[2].toInt(&existed)
+	do \control@FW :: data[3].toInt(&existed)
+	do \game@P2 :: data[3].toInt(&existed)
+	do \control@WAIT :: data[4].toInt(&existed)
+	
+	do game.start()
+	do game.main()
+	do game.fin()
+	
+end func
