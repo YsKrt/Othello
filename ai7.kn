@@ -1,8 +1,8 @@
 
 var value: [][]int
+const DEPTH: int :: 5
 
 +class AI()
-	var depth: int
 	*func ctor()
 		;評価マップ
 		do @value :: [
@@ -20,52 +20,26 @@ var value: [][]int
 	
 	+func main(turn: int): []int
 		var move: []int :: [-1, -1]
-		var count: int
-		var _count: int
-		for x(0, \game@SIZE - 1)
-			for y(0, \game@SIZE - 1)
-				if(\game@map[x][y] = turn)
-					do count :+ 1
-				end if
-				if(\game@map[x][y] = turn * -1)
-					do _count :+ 1
-				end if
-			end for
-		end for
-		
-		const maxDepth: int :: 5
-		
-		if(count + _count <= 5)
-			do me.depth :: 1
-		end if
-		
-		if(count > _count & me.depth > 1)
-			do me.depth :- 1
-		end if
-		
-		if(count < _count & me.depth < maxDepth)
-			do me.depth :+ 1
-		end if
-		
-		;do dbg@print("\{me.depth}\n")
-		do @MM(turn, turn, \game@map, me.depth, me.depth, -9 * 10 ^ 9, 9 * 10 ^ 9, &move)
+		do @MM(turn, turn, \game@map, @DEPTH, -9 * 10 ^ 9, 9 * 10 ^ 9, &move)
 		ret move
 	end func
 	
 end class
 
-;αβを少しいじったやつ。深さ可変。
-func MM(meTurn: int, turn: int, map: [][]int, maxDepth: int, depth: int, alpha: int, beta: int, move: &[]int): int
+;AlphaBeta
+;αがmax,βがmin
+func MM(meTurn: int, turn: int, map: [][]int, depth: int, alpha: int, beta: int, move: &[]int): int
 	;判定
 	;自分がパス:turn*2、自分の勝利:turn、引き分け:3
 	var judge: int
-	
 	var score: int :: @eval(meTurn, map, &judge)
 	
 	if(judge = turn * 2)
 		do turn :* -1
+		;do dbg@print("\{alpha},\{beta}\n")
 	end if
 	if(depth = 0 | judge.abs() = 1 | judge = 3)
+		;do dbg@print("\{score}\n")
 		ret score
 	end if
 	
@@ -77,7 +51,7 @@ func MM(meTurn: int, turn: int, map: [][]int, maxDepth: int, depth: int, alpha: 
 				
 				var _map: [][]int :: ##map
 				do \game@reverse(X, Y, turn, _map)
-				var value: int :: @MM(meTurn, turn * -1, _map, maxDepth, depth - 1, alpha, beta, &move)
+				var value: int :: @MM(meTurn, turn * -1, _map, depth - 1, alpha, beta, &move)
 				
 				if(alpha < value & turn = meTurn)
 					do alpha :: value
@@ -86,6 +60,7 @@ func MM(meTurn: int, turn: int, map: [][]int, maxDepth: int, depth: int, alpha: 
 					if(beta <= alpha)
 						break X
 					end if
+					;do dbg@print("\{alpha}\n")
 				end if
 				
 				if(value < beta & turn = meTurn * -1)
@@ -94,14 +69,17 @@ func MM(meTurn: int, turn: int, map: [][]int, maxDepth: int, depth: int, alpha: 
 					if(beta <= alpha)
 						break X
 					end if
+					;do dbg@print("\{beta}\n")
 				end if
 				
 			end if
 		end for
 	end for
 	
-	if(depth = maxDepth)
+	if(depth = @DEPTH)
 		do move :: _move
+		;do dbg@print("7:\{turn = meTurn ?(alpha, beta)}\n")
+		;do dbg@print("\{move[0]},\{move[1]}\n")
 		ret 0
 	else
 		ret turn = meTurn ?(alpha, beta)

@@ -1,5 +1,5 @@
 +var map: [][]int
-+const SIZE: int :: 6
++const SIZE: int :: 8
 +var count: int
 +var Traincount: int
 +var Readcount: int
@@ -333,7 +333,7 @@ end func
 
 +func rule(x: int, y: int, color: int): bool
 	;範囲内かどうか
-	if(!(x >= 0 & y >= 0 & x < @SIZE & y < @SIZE))
+	if(x < 0 | y < 0 | x > @SIZE - 1 | y > @SIZE - 1)
 		ret false
 	end if
 	;何もないか確認
@@ -360,6 +360,10 @@ end func
 
 ;各方向でとれる相手の石の数を返す
 +func get(x: int, y: int, color: int, way: int): int
+	;範囲外をはじく
+	if(x < 0 | x > @SIZE - 1 | y < 0 | y > @SIZE - 1)
+		ret 0
+	end if
 	;時計回り。上から
 	switch(way)
 	case 0

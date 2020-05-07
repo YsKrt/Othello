@@ -16,6 +16,8 @@
 	var AI5_W: \ai5@AI
 	var AI6_B: \ai6@AI
 	var AI6_W: \ai6@AI
+	var AI7_B: \ai7@AI
+	var AI7_W: \ai7@AI
 	*func ctor()
 		do me.manual :: #\manual@Manual
 		do me.AI1_B :: #\ai1@AI
@@ -30,6 +32,8 @@
 		do me.AI5_W :: #\ai5@AI
 		do me.AI6_B :: #\ai6@AI
 		do me.AI6_W :: #\ai6@AI
+		do me.AI7_B :: #\ai7@AI
+		do me.AI7_W :: #\ai7@AI
 	end func
 	
 	+func main(turn: int): []int
@@ -70,6 +74,11 @@
 					do lib@sleep(1000)
 				end if
 				do move :: me.AI6_B.main(turn)
+			case 7
+				if(@WAIT = 1)
+					do lib@sleep(1000)
+				end if
+				do move :: me.AI7_B.main(turn)
 			end switch
 		case -1
 			switch(@FW)
@@ -107,6 +116,11 @@
 					do lib@sleep(1000)
 				end if
 				do move :: me.AI6_W.main(turn)
+			case 7
+				if(@WAIT = 1)
+					do lib@sleep(1000)
+				end if
+				do move :: me.AI7_W.main(turn)
 			end switch
 		end switch
 		
