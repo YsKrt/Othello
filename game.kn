@@ -1,5 +1,5 @@
 +var map: [][]int
-+const SIZE: int :: 8
++const SIZE: int :: 6
 +var count: int
 +var Traincount: int
 +var Readcount: int

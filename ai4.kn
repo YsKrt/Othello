@@ -78,11 +78,11 @@
 			end for
 		end for
 		
-		;do dbg@print("\{Qmax}\n")
+		;do dbg@print("Q:\{Qmax}\n")
 		
 		;ランダムで行動する
-		if(\game@count % 3 = 0)
-			do move :: rndMove
+		if(\game@count % 3 = 0 & \game@count > 0 & \game@count < 1000)
+			;do move :: rndMove
 		end if
 		
 		
@@ -125,7 +125,7 @@
 			var out: []float :: me.nn.main(input, [0.0], way, 0)
 			do dEsum :+ me.nn.MSE(Q, out)
 			;重みの更新
-			;do me.nn.main(input, Q, way, me.nn.overFitF)
+			;do me.nn.main(input, Q, way, 1)
 			;
 			do me.rndLog.add(input)
 			do me.rndQ.add(Q[0])
@@ -137,7 +137,7 @@
 				do rInput[statemax * 2 + i] :: input[statemax * 3 - 1 - i]
 			end for
 			;重みの更新
-			;do me.nn.main(rInput, Q, way, me.nn.overFitF)
+			;do me.nn.main(rInput, Q, way,1)
 			;
 			do me.rndLog.add(input)
 			do me.rndQ.add(Q[0])
@@ -155,7 +155,7 @@
 			var out: []float :: me.nn.main(_input, [0.0], way, 0)
 			do dEsum :+ me.nn.MSE(Q, out)
 			;重みの更新
-			;do me.nn.main(_input, Q, way, me.nn.overFitF)
+			;do me.nn.main(_input, Q, way, 1)
 			;
 			do me.rndLog.add(_input)
 			do me.rndQ.add(Q[0])
@@ -167,45 +167,17 @@
 				do rInput[statemax * 2 + i] :: _input[statemax * 3 - 1 - i]
 			end for
 			;重み更新
-			;do me.nn.main(rInput, Q, way, me.nn.overFitF)
+			;do me.nn.main(rInput, Q, way, 1)
 			;
 			do me.rndLog.add(_input)
 			do me.rndQ.add(Q[0])
 			;
 			do me._log.prev()
 		end while
-		{
-		;過学習防止
-		const OFCM: int :: 10
-		if(me.nn.overFitCount < OFCM)
-			if(dEsum < 5.0)
-				do me.nn.overFitCount :+ 1
-			else
-				do me.nn.overFitCount :: 0
-			end if
-		elif(me.nn.overFitCount = OFCM)
-			do \main@logtxt :~ "!!!!!!!!!!!!!!!!!!!!!!!!!重みの学習を停止しました!!!!!!!!!!!!!!!!!!!!!!!!!\n"
-			do dbg@print("!!!!!!!!!!!!!!!!!!!!!!!!!重みの学習を停止しました!!!!!!!!!!!!!!!!!!!!!!!!!\n")
-			var h: file@Writer :: file@makeWriter("now_data.txt", true)
-			do h.writeStr("!!!!!!!!!!!!!!!!!!!!!!!!!重みの学習を停止しました!!!!!!!!!!!!!!!!!!!!!!!!!\n")
-			do h.fin()
-			do me.nn.overFitCount :+ 1
-			do me.nn.overFitF :: 0
-		end if
-		}
-		;;;;;;保存するときに記録したデータをランダムでNNに入れて学習させる
-		var savecount: int
-		var savedata: []char :: ""
-		if(\game@Traincount <= 100)
-			do savecount :: 10
-		elif(\game@Traincount <= 1000)
-			do savecount :: 100
-		elif(\game@Traincount <= 3000)
-			do savecount :: 500
-		else
-			do savecount :: 1000
-		end if
-		if(\game@count % 100 = 0 & \game@count > 0)
+		
+		;;;;;;記録したデータをランダムでNNに入れて学習させる
+		
+		if(\game@count % 1 = 0 & \game@count > 0)
 			
 			do me.rndLog.head()
 			do me.rndQ.head()
@@ -229,7 +201,7 @@
 				
 				
 				;重み更新
-				do me.nn.main(log, [Q], way, me.nn.overFitF)
+				do me.nn.main(log, [Q], way, 1)
 				
 				do me.rndLog.del()
 				do me.rndQ.del()
@@ -272,25 +244,17 @@ end class
 
 +class NN()
 	const input_size: int :: \game@SIZE * \game@SIZE * 3
-	const hidden_size: int :: 100
+	const hidden_size: int :: 150
 	const output_size: int :: 1
-	const eta: float :: 1.0e-3
+	const eta: float :: 5.0e-4
 	const rndrange: float :: 1.0
 	const clip: float :: 1.0
-	const b: float :: 1.0
 	;nn()のflag
 	;0 sigmoid
 	;1 ReLU
 	;2 tanh
 	;3 step
 	
-	;過学習防止。MSEが一定以下を一定回数連続取った時重みの更新を止める
-	+var overFitCount: int
-	+var overFitF: int
-	
-	var x_list: list<float>
-	var y_list: list<float>
-	var t_list: list<float>
 	
 	var input: []float
 	var hidden: []float
@@ -302,11 +266,7 @@ end class
 	
 	*func ctor()
 		
-		do me.overFitF :: 1
 		
-		do me.x_list :: #list<float>
-		do me.y_list :: #list<float>
-		do me.t_list :: #list<float>
 		;入力層と隠れ層の[0]には1
 		;重みの[0]にはバイアスを用意する
 		do me.input :: #[input_size + 1]float
@@ -318,17 +278,10 @@ end class
 		;1の出力
 		do me.input[0] :: 1.0
 		do me.hidden[0] :: 1.0
-		;バイアスの代入
-		for h(1, hidden_size)
-			do me.weight_ih[0][h] :: b
-		end for
-		for o(0, output_size - 1)
-			do me.weight_ho[0][o] :: b
-		end for
 		;重みの初期化
 		;全て同じ値を使うと更新してもすべて同じ値になってしまい意味がなくなる！！！
-		for i(1, input_size)
-			for h(1, hidden_size)
+		for i(0, input_size)
+			for h(0, hidden_size)
 				do me.weight_ih[i][h] :: lib@rndFloat(-rndrange, rndrange)
 				for o(0, output_size - 1)
 					do me.weight_ho[h][o] :: lib@rndFloat(-rndrange, rndrange)
